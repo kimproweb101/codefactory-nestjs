@@ -8,21 +8,22 @@ import {
   Patch,
   Post,
   Query,
-  UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
 import { User } from 'src/decorator/user.decorator';
-import { CreaetePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PaginatePostDto } from './dto/pagiantion.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CreatePostDto } from './dto/create-post.dto';
+import { ImageModelType } from 'src/common/entity/image.entity';
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
+
   @Get()
   // @UseInterceptors(ClassSerializerInterceptor)
   getPosts(@Query() query: PaginatePostDto) {
@@ -34,13 +35,35 @@ export class PostsController {
     return this.postsService.getPostById(id);
   }
 
+  // A Model, B Model
+  // Post API -> A 모델을 저장하고, B 모델을 저장한다.
+  // await repository.save(a)
+  // await repository.save(b)
+
+  // 만약에 A를 저장하다가 실패하면 B를 저장하면 안될경우
+  // all or nothing
+  // transaction
+  // start -> 시작
+  // commit -> 저장
+  // 한가지만 안되더라도 그 전상태로 돌릴 수 있음
+  // rollback -> 원상복구
+
   @Post()
   @UseGuards(AccessTokenGuard)
   @UseInterceptors(FileInterceptor('image'))
-  async postPosts(@User('id') userId: number, @Body() body: CreaetePostDto) {
-    await this.postsService.createPostImage(body);
+  async postPosts(@User('id') userId: number, @Body() body: CreatePostDto) {
+    const post = await this.postsService.createPost(userId, body);
 
-    return this.postsService.createPost(userId, body);
+    for (let i = 0; i < body.images.length; i++) {
+      await this.postsService.createPostImage({
+        post,
+        order: i,
+        path: body.images[i],
+        type: ImageModelType.POST_IMAGE,
+      });
+    }
+
+    return this.postsService.getPostById(post.id);
   }
 
   @Patch(':id')

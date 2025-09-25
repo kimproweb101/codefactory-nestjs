@@ -6,13 +6,14 @@ import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { CommonModule } from 'src/common/common.module';
 import { Module } from '@nestjs/common';
+import { ImageModel } from 'src/common/entity/image.entity';
 
 @Module({
   imports: [
     AuthModule,
     UsersModule,
     CommonModule,
-    TypeOrmModule.forFeature([PostsModel]),
+    TypeOrmModule.forFeature([PostsModel, ImageModel]),
   ],
   controllers: [PostsController],
   providers: [PostsService],
