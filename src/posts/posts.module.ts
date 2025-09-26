@@ -7,6 +7,7 @@ import { UsersModule } from 'src/users/users.module';
 import { CommonModule } from 'src/common/common.module';
 import { Module } from '@nestjs/common';
 import { ImageModel } from 'src/common/entity/image.entity';
+import { PostsImagesService } from './image/images.service';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { ImageModel } from 'src/common/entity/image.entity';
     TypeOrmModule.forFeature([PostsModel, ImageModel]),
   ],
   controllers: [PostsController],
-  providers: [PostsService],
+  providers: [PostsService, PostsImagesService],
   exports: [PostsService],
 })
 export class PostsModule {}

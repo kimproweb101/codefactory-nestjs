@@ -2,8 +2,7 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 import { BaseModel } from './base.entity';
 import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { IMG_URL, POST_PUBLIC_IMAGE_PATH } from '../const/path.const';
-import { join } from 'path';
+import { IMG_URL } from '../const/path.const';
 import { PostsModel } from 'src/posts/entities/posts.entity';
 
 export enum ImageModelType {
@@ -40,6 +39,6 @@ export class ImageModel extends BaseModel {
   })
   path: string;
 
-  @ManyToOne((type) => PostsModel, (post) => post.images)
+  @ManyToOne(() => PostsModel, (post) => post.images)
   post?: PostsModel;
 }
