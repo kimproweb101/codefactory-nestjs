@@ -40,7 +40,7 @@ export class PostsController {
 
   @Get()
   // @UseInterceptors(ClassSerializerInterceptor)
-  @UseInterceptors(LogInterceptor)
+  // @UseInterceptors(LogInterceptor)
   @UseFilters(HttpExceptionFilter)
   getPosts(@Query() query: PaginatePostDto) {
     // throw new BadRequestException('에러 테스트');
