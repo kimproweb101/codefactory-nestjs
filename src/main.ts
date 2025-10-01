@@ -16,6 +16,11 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+  app.enableCors({
+    origin: ['http://localhost:5173'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true, // 쿠키/인증 정보 포함 여부
+  });
 
   // app.useGlobalFilters(new HttpExceptionFilter());
 
