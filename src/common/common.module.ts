@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CommonService } from './common.service';
 import { CommonController } from './common.controller';
-import { PostsModel } from 'src/posts/entities/posts.entity';
+import { PostsModel } from 'src/posts/entity/posts.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as multer from 'multer';
 import { v4 as uuid } from 'uuid';

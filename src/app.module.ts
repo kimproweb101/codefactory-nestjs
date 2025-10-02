@@ -10,9 +10,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PostsModule } from './posts/posts.module';
-import { PostsModel } from './posts/entities/posts.entity';
+import { PostsModel } from './posts/entity/posts.entity';
 import { UsersModule } from './users/users.module';
-import { UsersModel } from './users/entities/users.entity';
+import { UsersModel } from './users/entity/users.entity';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
@@ -30,6 +30,10 @@ import { LogMiddleware } from './common/middleware/log.middleware';
 import { ChatsModule } from './chats/chats.module';
 import { ChatsModel } from './chats/entity/chats.entity';
 import { MessagesModel } from './chats/messages/entity/messages.entity';
+import { CommentsModule } from './posts/comments/comments.module';
+import { CommentsModel } from './posts/comments/entity/comments.entity';
+import { PostExistsMiddleware } from './posts/comments/middleware/post-exists.middleware';
+import { CommentsController } from './posts/comments/comments.controller';
 
 @Module({
   imports: [
@@ -38,9 +42,6 @@ import { MessagesModel } from './chats/messages/entity/messages.entity';
       isGlobal: true,
     }),
     ServeStaticModule.forRoot({
-      // 4022.jpg
-      // http://localhost:3000/public/posts/4022.jpg
-      // http://localhost:3000/posts/4022.jpg
       rootPath: PUBLIC_FOLDER_PATH,
       serveRoot: '/public',
     }),
@@ -51,7 +52,7 @@ import { MessagesModel } from './chats/messages/entity/messages.entity';
       username: process.env[ENV_DB_USERNAME_KEY],
       password: process.env[ENV_DB_PASSWORD_KEY],
       database: process.env[ENV_DB_DATABASE_KEY],
-      entities: [PostsModel, UsersModel, ImageModel, ChatsModel, MessagesModel],
+      entities: [PostsModel, UsersModel, ImageModel, ChatsModel, MessagesModel, CommentsModel],
       synchronize: true,
     }),
     AuthModule,
@@ -59,6 +60,7 @@ import { MessagesModel } from './chats/messages/entity/messages.entity';
     PostsModule,
     CommonModule,
     ChatsModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -71,11 +73,16 @@ import { MessagesModel } from './chats/messages/entity/messages.entity';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LogMiddleware).forRoutes({
-      // path: 'posts', // 정확히 posts만가능 posts/:id 는안됨
-      path: '*', // posts뒤에 모든 path 허용
-      // method: RequestMethod.ALL,
-      method: RequestMethod.GET,
-    });
+    consumer
+    .apply(PostExistsMiddleware)
+    .forRoutes(CommentsController)
   }
+  // configure(consumer: MiddlewareConsumer) {
+  //   consumer.apply(LogMiddleware).forRoutes({
+  //     // path: 'posts', // 정확히 posts만가능 posts/:id 는안됨
+  //     path: '*', // posts뒤에 모든 path 허용
+  //     // method: RequestMethod.ALL,
+  //     method: RequestMethod.GET,
+  //   });
+  // }
 }

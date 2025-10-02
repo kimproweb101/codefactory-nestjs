@@ -3,7 +3,7 @@ import { BaseModel } from './base.entity';
 import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { IMG_URL } from '../const/path.const';
-import { PostsModel } from 'src/posts/entities/posts.entity';
+import { PostsModel } from 'src/posts/entity/posts.entity';
 
 export enum ImageModelType {
   POST_IMAGE,
