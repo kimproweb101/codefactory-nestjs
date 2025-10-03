@@ -24,8 +24,13 @@ import { PostsImagesService } from './image/images.service';
 import { TransactionInterceptor } from 'src/common/interceptor/transaction-interceptor';
 import { QueryRunner } from 'src/decorator/query-runner.decorator';
 import { HttpExceptionFilter } from 'src/common/exception-filter/http.exception-filter';
+import { RolesEnum } from 'src/users/const/roles.const';
+import { Roles } from 'src/users/decorator/roles.decorator';
+import { IsPublic } from 'src/common/decorator/is-public.decorator';
+import { IsPostMineOrAdminGuard } from './guard/is-post-mine-or-admin.guard';
 
 @Controller('posts')
+// @Roles(RolesEnum.USER)
 export class PostsController {
   constructor(
     private readonly postsImagesService: PostsImagesService,
@@ -34,16 +39,14 @@ export class PostsController {
   ) {}
 
   @Get()
-  // @UseInterceptors(ClassSerializerInterceptor)
-  // @UseInterceptors(LogInterceptor)
+  @IsPublic()
   @UseFilters(HttpExceptionFilter)
   getPosts(@Query() query: PaginatePostDto) {
-    // throw new BadRequestException('에러 테스트');
-
     return this.postsService.paginatePosts(query);
   }
 
   @Get(':id')
+  @IsPublic()
   getPost(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.getPostById(id);
   }
@@ -62,7 +65,6 @@ export class PostsController {
   // rollback -> 원상복구
 
   @Post()
-  @UseGuards(AccessTokenGuard)
   @UseInterceptors(TransactionInterceptor)
   async postPosts(
     @User('id') userId: number,
@@ -84,24 +86,25 @@ export class PostsController {
     return this.postsService.getPostById(post.id, qr);
   }
 
-  @Patch(':id')
+  @Patch(':postId')
+  @UseGuards(IsPostMineOrAdminGuard)
   patchPost(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('postId', ParseIntPipe) id: number,
     @Body() body: UpdatePostDto,
     // @Body('title') title?: string,
     // @Body('content') content?: string,
   ) {
-    // return this.postsService.updatePost(+id, author, title, content);
     return this.postsService.updatePost(id, body);
   }
 
   @Delete(':id')
+  @UseGuards(IsPostMineOrAdminGuard)
+  @Roles(RolesEnum.ADMIN)
   deletePost(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.deletePost(id);
   }
 
   @Post('random')
-  @UseGuards(AccessTokenGuard)
   async postPostsRandom(@User('id') userId: number) {
     await this.postsService.generatePosts(userId);
     return true;

@@ -25,7 +25,7 @@ export class PostsService {
     @InjectRepository(PostsModel)
     private readonly postsRepository: Repository<PostsModel>,
     private readonly commonService: CommonService,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService,    
   ) {}
 
   async paginatePosts(dto: PaginatePostDto) {
@@ -144,19 +144,18 @@ export class PostsService {
     return newPost;
   }
 
-  async updatePost(id: number, postDto: UpdatePostDto) {
+  async updatePost(postId: number, postDto: UpdatePostDto) {
     const { title, content } = postDto;
-
     // save의 기능
-    // 1) 만약에 데이터가 존재하지 않는다면 (id 기준으로) 새로 생성한다
-    // 2) 만약에 데이터가 존재한다면 (같은 id의 값이 존재한다면) 존재하던 값을 업데이트 한다.
+    // 1) 만약에 데이터가 존재하지 않는다면 (id 기준으로) 새로 생성한다.
+    // 2) 만약에 데이터가 존재한다면 (같은 id의 값이 존재한다면) 존재하던 값을 업데이트한다.
 
     const post = await this.postsRepository.findOne({
-      ...DEFAULT_POST_FIND_OPTIONS,
       where: {
-        id,
+        id: postId,
       },
     });
+
     if (!post) {
       throw new NotFoundException();
     }
@@ -169,18 +168,24 @@ export class PostsService {
       post.content = content;
     }
 
-    const newPost = this.postsRepository.save(post);
+    const newPost = await this.postsRepository.save(post);
+
     return newPost;
   }
 
-  async deletePost(id: number) {
+  async deletePost(postId: number) {
     const post = await this.postsRepository.findOne({
       where: {
-        id,
+        id: postId,
       },
     });
-    if (!post) throw new NotFoundException();
-    return id;
+
+    if (!post) {
+      throw new NotFoundException();
+    }
+
+    await this.postsRepository.delete(postId);
+    return postId;
   }
 
   async generatePosts(userId: number) {
@@ -200,4 +205,20 @@ export class PostsService {
       }
     })
   }
+
+  async isPostMine(userId: number, postId: number) {
+    return this.postsRepository.exist({
+      where: {
+        id: postId,
+        author: {
+          id: userId,
+        }
+      },
+      relations: {
+        author: true,
+      }
+    });
+  }
+
+  
 }

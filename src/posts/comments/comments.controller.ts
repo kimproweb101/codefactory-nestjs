@@ -6,6 +6,8 @@ import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
 import { UsersModel } from 'src/users/entity/users.entity';
 import { User } from 'src/decorator/user.decorator';
 import { UpdateCommentsDto } from './dto/update-comments.dto';
+import { IsPublic } from 'src/common/decorator/is-public.decorator';
+import { IsCommentMineOrAdminGuard } from './guard/is-comment-mine-or-admin.guard';
 
 @Controller('posts/:postId/comments')
 export class CommentsController {
@@ -30,6 +32,7 @@ export class CommentsController {
    */
 
   @Get()
+  @IsPublic()
   getComments(
     @Param('postId', ParseIntPipe) postId: number,
     @Query() query: PaginateCommentsDto
@@ -38,12 +41,12 @@ export class CommentsController {
   }
 
   @Get(':commentId')
+  @IsPublic()
   getComment(@Param('commentId', ParseIntPipe) commentId: number) {
     return this.commentsService.getCommentById(commentId)
   }
 
   @Post()
-  @UseGuards(AccessTokenGuard)
   postComment(
     @Param('postId', ParseIntPipe) postId: number,
     @Body() body: CreateCommentsDto,
@@ -53,7 +56,7 @@ export class CommentsController {
   }
 
   @Patch(':commentId')
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(IsCommentMineOrAdminGuard)
   async patchComment(
     @Param('commentId', ParseIntPipe) CommentId: number,
     @Body() body : UpdateCommentsDto  
@@ -62,7 +65,7 @@ export class CommentsController {
   }
 
   @Delete(':commentId')
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(IsCommentMineOrAdminGuard)
   async deleteComment(
     @Param('commentId', ParseIntPipe) commentId: number,
   ){

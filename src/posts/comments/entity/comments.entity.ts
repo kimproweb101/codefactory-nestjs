@@ -15,6 +15,7 @@ export class CommentsModel extends BaseModel{
 
   @ManyToOne(() => PostsModel, (posts) => posts.comments, {
     nullable: false,
+    onDelete:'CASCADE',
   })
   post: PostsModel;
   

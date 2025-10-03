@@ -4,7 +4,9 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { AuthService } from 'src/auth/auth.service';
+import { IS_PUBLIC_KEY } from 'src/common/decorator/is-public.decorator';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -12,10 +14,24 @@ export class BearerTokenGuard implements CanActivate {
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
+    private readonly reflector: Reflector
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const req = context.switchToHttp().getRequest();
+    const IsPublic=this.reflector.getAllAndOverride(
+      IS_PUBLIC_KEY,
+      [
+        context.getHandler(),
+        context.getClass()
+      ]
+    )
+
+    const req=context.switchToHttp().getRequest()
+    if(IsPublic) { 
+      req.isRoutePublic=true
+      return true
+    }
+    
     const rawToken = req.headers['authorization'];
 
     if (!rawToken) {
@@ -49,6 +65,11 @@ export class AccessTokenGuard extends BearerTokenGuard {
     await super.canActivate(context);
 
     const req = context.switchToHttp().getRequest();
+
+    if(req.isRoutePublic){
+      return true
+    }
+
     if (req.tokenType !== 'access') {
       throw new UnauthorizedException('Access Token이 아닙니다.');
     }
@@ -62,6 +83,9 @@ export class RefreshTokenGuard extends BearerTokenGuard {
     await super.canActivate(context);
 
     const req = context.switchToHttp().getRequest();
+    if(req.isRoutePublic){
+      return true
+    }
     if (req.tokenType !== 'refresh') {
       throw new UnauthorizedException('Refresh Token이 아닙니다.');
     }

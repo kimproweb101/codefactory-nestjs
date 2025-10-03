@@ -21,7 +21,9 @@ import {
 import { AuthService } from '../auth.service';
 @Injectable()
 export class BasicTokenGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
